@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+  <!-- يضبط مسار التطبيق تلقائياً: يعمل من الجذر (Cloudflare) ومن مسار فرعي (github.io/اسم-المستودع/) بنفس الملفات -->
+  <script>
+    (function () {
+      var b = document.querySelector('base');
+      var p = location.pathname.replace(/[^\/]*$/, '');
+      if (b) b.href = location.origin + p;
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="منظّم اليوم على هدي السنة: صلوات وعبادات وحياة دنيا في جدول واحد هادئ.">
+
+  <meta name="theme-color" content="#2E7D6B" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0F1815" media="(prefers-color-scheme: dark)">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="هَدْي">
+
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="manifest" href="manifest.json">
+
+  <title>هَدْي</title>
+
+  <style>
+    html, body { margin: 0; height: 100%; background: #F7F5EE; }
+    @media (prefers-color-scheme: dark) { html, body { background: #0F1815; } }
+  </style>
+
+  <script src="config.js"></script>
+  <script src="notify.js"></script>
+</head>
+<body>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

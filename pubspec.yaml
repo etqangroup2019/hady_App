@@ -1,0 +1,22 @@
+name: sunnah_day
+description: منظّم اليوم على هدي السنة - صلوات وعبادات وحياة دنيا في جدول واحد هادئ.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  shared_preferences: ^2.3.0
+  http: ^1.2.0
+  google_fonts: ^6.2.1
+  flutter_local_notifications: ^19.0.0
+  timezone: ^0.10.0
+  geolocator: ^13.0.0
+
+flutter:
+  uses-material-design: true

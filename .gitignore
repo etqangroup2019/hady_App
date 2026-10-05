@@ -1,0 +1,12 @@
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.idea/
+*.iml
+
+# يُولَّد في سير عمل الأندرويد
+android/
+windows/
+ios/

@@ -1,0 +1,17 @@
+name = "hady-push"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+
+[triggers]
+crons = ["* * * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "hady-push"
+database_id = "ضع-المعرّف-هنا"
+
+[vars]
+# بريد حقيقي للتواصل معك (تشترطه خدمات الدفع في ترويسة VAPID)
+VAPID_SUBJECT = "mailto:you@example.com"
+# يمكنك حصرها برابط تطبيقك، مثل: https://اسمك.github.io
+ALLOWED_ORIGIN = "*"

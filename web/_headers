@@ -1,0 +1,16 @@
+/
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+/flutter_service_worker.js
+  Cache-Control: no-cache
+/flutter_bootstrap.js
+  Cache-Control: no-cache
+/manifest.json
+  Cache-Control: no-cache
+/hady_sw.js
+  Cache-Control: no-cache
+/config.js
+  Cache-Control: no-cache
+/notify.js
+  Cache-Control: no-cache
