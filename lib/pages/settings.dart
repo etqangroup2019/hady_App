@@ -4,6 +4,7 @@ import '../app_state.dart';
 import '../bridge.dart';
 import '../methods.dart';
 import '../models.dart';
+import '../version.dart';
 import '../widgets.dart';
 
 const _typeInfo = <List<String>>[
@@ -108,26 +109,75 @@ class _SettingsPageState extends State<SettingsPage> {
     ];
   }
 
+  // البطاقات قابلة للطي والتوسيع؛ تبدأ مطويّة ما عدا الأولى.
+  final Set<String> _open = {'المظهر'};
+
   Widget _section(String title, IconData icon, List<Widget> kids) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
+    final open = _open.contains(title);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Panel(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.zero,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [
-              Icon(icon, color: cs.primary),
-              const SizedBox(width: 10),
-              Text(title, style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
-            ]),
-            const SizedBox(height: 12),
-            ...kids,
+            InkWell(
+              borderRadius: BorderRadius.circular(20),
+              onTap: () => setState(() => open ? _open.remove(title) : _open.add(title)),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(children: [
+                  Icon(icon, color: cs.primary),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text(title, style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w800))),
+                  AnimatedRotation(
+                    turns: open ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(Icons.expand_more, color: Theme.of(context).hintColor),
+                  ),
+                ]),
+              ),
+            ),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeInOut,
+              alignment: Alignment.topCenter,
+              child: open
+                  ? Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: kids),
+                    )
+                  : const SizedBox(width: double.infinity),
+            ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _about(ColorScheme cs, TextTheme tt, TextStyle? hint) {
+    final b = builtAt;
+    final built = b == null ? null : '${b.year}-${two(b.month)}-${two(b.day)}  ${two(b.hour)}:${two(b.minute)}';
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 8),
+      child: Column(children: [
+        Text('هَدْي', style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w800, color: cs.primary)),
+        const SizedBox(height: 6),
+        Text('الإصدار $versionFull', style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
+        if (built != null || appCommit.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(
+              [if (built != null) 'بُني: $built', if (appCommit.isNotEmpty) 'commit $appCommit'].join('  ·  '),
+              style: hint,
+              textDirection: TextDirection.ltr,
+            ),
+          ),
+        const SizedBox(height: 6),
+        Text('المطوّر: $appDeveloper', style: tt.bodyMedium),
+      ]),
     );
   }
 
@@ -447,6 +497,10 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ),
             ]),
+
+            // ── عن التطبيق ──
+            const Divider(height: 28),
+            _about(cs, tt, hint),
           ],
         );
       },

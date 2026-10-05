@@ -4,9 +4,133 @@ import '../app_state.dart';
 import '../models.dart';
 import '../widgets.dart';
 
-class TasksPage extends StatelessWidget {
+/// يوحّد الحروف العربية لبحث متسامح: بلا تشكيل، وأ/إ/آ=ا، ة=ه، ى=ي.
+String normAr(String s) {
+  return s
+      .replaceAll(RegExp('[\u064B-\u0652\u0640]'), '')
+      .replaceAll(RegExp('[أإآ]'), 'ا')
+      .replaceAll('ة', 'ه')
+      .replaceAll('ى', 'ي')
+      .toLowerCase()
+      .trim();
+}
+
+class TasksPage extends StatefulWidget {
   final AppState st;
   const TasksPage({super.key, required this.st});
+
+  @override
+  State<TasksPage> createState() => _TasksPageState();
+}
+
+class _TasksPageState extends State<TasksPage> {
+  AppState get st => widget.st;
+
+  final TextEditingController _q = TextEditingController();
+  final Set<Cat> _cats = {};
+  String _status = 'all'; // all | on | off
+  bool _remindOnly = false;
+
+  bool get _filtered => _cats.isNotEmpty || _status != 'all' || _remindOnly;
+
+  @override
+  void dispose() {
+    _q.dispose();
+    super.dispose();
+  }
+
+  bool _match(Occ o) {
+    final t = o.task;
+    if (_cats.isNotEmpty && !_cats.contains(t.cat)) return false;
+    if (_status == 'on' && !t.enabled) return false;
+    if (_status == 'off' && t.enabled) return false;
+    if (_remindOnly && !t.remind) return false;
+    final q = normAr(_q.text);
+    if (q.isNotEmpty) {
+      final hay = normAr('${t.title} ${t.note} ${catNames[t.cat]}');
+      if (!hay.contains(q)) return false;
+    }
+    return true;
+  }
+
+  Future<void> _openFilter() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) {
+          void both(VoidCallback f) {
+            setSheet(f);
+            setState(() {});
+          }
+
+          final tt = Theme.of(ctx).textTheme;
+          return SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('تصفية المهام', style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 14),
+                  Text('الحالة', style: tt.labelLarge),
+                  const SizedBox(height: 6),
+                  SegmentedButton<String>(
+                    segments: const [
+                      ButtonSegment(value: 'all', label: Text('الكل')),
+                      ButtonSegment(value: 'on', label: Text('مفعّلة')),
+                      ButtonSegment(value: 'off', label: Text('موقوفة')),
+                    ],
+                    selected: {_status},
+                    onSelectionChanged: (v) => both(() => _status = v.first),
+                  ),
+                  const SizedBox(height: 14),
+                  Text('الفئة', style: tt.labelLarge),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      for (final c in Cat.values)
+                        FilterChip(
+                          avatar: Icon(catIcon(c), size: 16, color: catColor(c)),
+                          label: Text(catNames[c]!),
+                          selected: _cats.contains(c),
+                          onSelected: (v) => both(() => v ? _cats.add(c) : _cats.remove(c)),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('التي لها تنبيه فقط'),
+                    value: _remindOnly,
+                    onChanged: (v) => both(() => _remindOnly = v),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(children: [
+                    TextButton.icon(
+                      onPressed: () => both(() {
+                        _cats.clear();
+                        _status = 'all';
+                        _remindOnly = false;
+                      }),
+                      icon: const Icon(Icons.restart_alt),
+                      label: const Text('مسح التصفية'),
+                    ),
+                    const Spacer(),
+                    FilledButton(onPressed: () => Navigator.pop(ctx), child: const Text('تم')),
+                  ]),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +138,8 @@ class TasksPage extends StatelessWidget {
       listenable: st,
       builder: (context, _) {
         final today = dayOnly(DateTime.now());
-        final list = st.occurrences(today, all: true);
+        final all = st.occurrences(today, all: true);
+        final list = all.where(_match).toList();
         final cs = Theme.of(context).colorScheme;
         final tt = Theme.of(context).textTheme;
 
@@ -29,6 +154,48 @@ class TasksPage extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
             children: [
               const PageTitle('مهامي', subtitle: 'عدّل الجدول كما يناسب يومك، أو أوقف ما لا تحتاجه.'),
+              Row(children: [
+                Expanded(
+                  child: TextField(
+                    controller: _q,
+                    onChanged: (_) => setState(() {}),
+                    textInputAction: TextInputAction.search,
+                    decoration: InputDecoration(
+                      hintText: 'ابحث في المهام…',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _q.text.isEmpty
+                          ? null
+                          : IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: () => setState(_q.clear),
+                            ),
+                      isDense: true,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Badge(
+                  isLabelVisible: _filtered,
+                  smallSize: 10,
+                  child: IconButton.filledTonal(
+                    onPressed: _openFilter,
+                    tooltip: 'تصفية',
+                    icon: const Icon(Icons.filter_list),
+                  ),
+                ),
+              ]),
+              const SizedBox(height: 6),
+              if (_filtered || _q.text.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text('${list.length} من ${all.length} مهمة', style: tt.bodySmall?.copyWith(color: Theme.of(context).hintColor)),
+                ),
+              if (list.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 40),
+                  child: Center(child: Text('لا توجد مهام مطابقة', style: tt.bodyLarge?.copyWith(color: Theme.of(context).hintColor))),
+                ),
               for (final o in list)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),

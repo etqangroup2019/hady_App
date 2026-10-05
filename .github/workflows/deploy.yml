@@ -19,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: subosito/flutter-action@v2
         with:
@@ -27,7 +29,12 @@ jobs:
 
       - run: flutter pub get
 
-      - run: flutter build web --release
+      - name: Build
+        run: |
+          flutter build web --release \
+            --dart-define=BUILD=$(git rev-list --count HEAD) \
+            --dart-define=COMMIT=$(git rev-parse --short HEAD) \
+            --dart-define=BUILT=$(date +%s)
 
       - uses: peaceiris/actions-gh-pages@v4
         with:

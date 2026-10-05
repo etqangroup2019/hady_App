@@ -74,7 +74,7 @@ class StepperField extends StatelessWidget {
           child: SizedBox(
             width: 40,
             height: 40,
-            child: Icon(ic, size: 20, color: on ? cs.primary : cs.onSurface.withOpacity(0.28)),
+            child: Icon(ic, size: 20, color: on ? cs.primary : cs.onSurface.withValues(alpha: 0.28)),
           ),
         );
 
@@ -89,7 +89,7 @@ class StepperField extends StatelessWidget {
             child: Container(
               height: 40,
               decoration: BoxDecoration(
-                color: cs.surfaceContainerHighest.withOpacity(0.35),
+                color: cs.surfaceContainerHighest.withValues(alpha: 0.35),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: cs.outlineVariant),
               ),
